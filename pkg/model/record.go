@@ -9,8 +9,8 @@ type Record struct {
 	Name          string    `json:"name"`
 	Datetime      time.Time `json:"datetime"`
 	UserID        *int      `json:"user_id"`
-	Category      string    `json:"category"`
-	Subcategory   string    `json:"subcategory"`
+	CategoryID    int       `json:"category_id"`
+	SubcategoryID int       `json:"subcategory_id"`
 	Amount        float64   `json:"amount"`
 	UnitType      string    `json:"unit_type"`
 	InputDatetime time.Time `json:"input_datetime"`

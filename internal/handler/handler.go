@@ -11,7 +11,7 @@ import (
 // GetRecords handles the GET /records route.
 func GetRecords(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		rows, err := db.Query("SELECT id, name, datetime, user_id, category, subcategory, amount, unit_type, input_datetime FROM record")
+		rows, err := db.Query("SELECT id, name, datetime, user_id, category_id, subcategory_id, amount, unit_type, input_datetime FROM record")
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -21,7 +21,7 @@ func GetRecords(db *sql.DB) gin.HandlerFunc {
 		var records []model.Record
 		for rows.Next() {
 			var r model.Record
-			if err := rows.Scan(&r.ID, &r.Name, &r.Datetime, &r.UserID, &r.Category, &r.Subcategory, &r.Amount, &r.UnitType, &r.InputDatetime); err != nil {
+			if err := rows.Scan(&r.ID, &r.Name, &r.Datetime, &r.UserID, &r.CategoryID, &r.SubcategoryID, &r.Amount, &r.UnitType, &r.InputDatetime); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
 			}
@@ -38,8 +38,8 @@ func GetRecordByID(db *sql.DB) gin.HandlerFunc {
 		id := c.Param("id")
 
 		var r model.Record
-		err := db.QueryRow("SELECT id, name, datetime, user_id, category, subcategory, amount, unit_type, input_datetime FROM record WHERE id = ?", id).Scan(
-			&r.ID, &r.Name, &r.Datetime, &r.UserID, &r.Category, &r.Subcategory, &r.Amount, &r.UnitType, &r.InputDatetime)
+		err := db.QueryRow("SELECT id, name, datetime, user_id, category_id, subcategory_id, amount, unit_type, input_datetime FROM record WHERE id = ?", id).Scan(
+			&r.ID, &r.Name, &r.Datetime, &r.UserID, &r.CategoryID, &r.SubcategoryID, &r.Amount, &r.UnitType, &r.InputDatetime)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				c.JSON(http.StatusNotFound, gin.H{"message": "record not found"})
@@ -62,8 +62,8 @@ func PostRecord(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		result, err := db.Exec("INSERT INTO record (name, datetime, user_id, category, subcategory, amount, unit_type, input_datetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-			newRecord.Name, newRecord.Datetime, newRecord.UserID, newRecord.Category, newRecord.Subcategory, newRecord.Amount, newRecord.UnitType, newRecord.InputDatetime)
+		result, err := db.Exec("INSERT INTO record (name, datetime, user_id, category_id, subcategory_id, amount, unit_type, input_datetime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			newRecord.Name, newRecord.Datetime, newRecord.UserID, newRecord.CategoryID, newRecord.SubcategoryID, newRecord.Amount, newRecord.UnitType, newRecord.InputDatetime)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -77,5 +77,19 @@ func PostRecord(db *sql.DB) gin.HandlerFunc {
 
 		newRecord.ID = int(id)
 		c.JSON(http.StatusCreated, newRecord)
+	}
+}
+
+func DeleteRecordByID(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		_, err := db.Exec("DELETE FROM record WHERE id = ?", id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "record deleted"})
 	}
 }
